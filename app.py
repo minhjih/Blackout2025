@@ -14,6 +14,11 @@ from server.config import config
 import json
 from datetime import datetime
 
+import numpy as np
+import cv2
+
+from frame_analyzer import analyze_frame
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(config['default'])
@@ -106,28 +111,38 @@ import base64
 @login_required
 def process_video_frame():
     try:
-        data = request.get_json()
-        if not data or 'frame' not in data or 'frame_id' not in data:
-            return jsonify({'error': 'Missing frame data or frame_id'}), 400
+        if 'frame_id' not in request.form:
+            return jsonify({'error': 'Missing frame_id'}), 400
+            
+        # Check if file is in request
+        if 'frame' not in request.files:
+            return jsonify({'error': 'No frame file'}), 400
+            
+        frame_file = request.files['frame']
+        frame_id = int(request.form['frame_id'])
 
         # Decode base64 frame
-        #frame_bytes = base64.b64decode(data['frame'])
+        file_bytes = np.frombuffer(frame_file.read(), np.uint8)
+        frame_array = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+        frame_data = analyze_frame(frame_array)
+        print(frame_data)
 
         # Placeholder for score calculation and road outline detection
-        score = 75.5  # Example score
+        score = frame_data['score']  # Example score
         road_outline = {
-            "bottom_x_r": 450.0,
-            "bottom_x_s": 190.0,
-            "bottom_y": 540.0,
-            "top_x_r": 340.0,
-            "top_x_s": 300.0,
-            "top_y": 325.0
+            "bottom_x_r": frame_data['road_outline']['bottom_x_r'],
+            "bottom_x_s": frame_data['road_outline']['bottom_x_s'],
+            "bottom_y": frame_data['road_outline']['bottom_y'],
+            "top_x_r": frame_data['road_outline']['top_x_r'],
+            "top_x_s": frame_data['road_outline']['top_x_s'],
+            "top_y": frame_data['road_outline']['top_y'] 
         }
 
         # Store score in Db
         frame_data = FrameData(
             user_id=current_user.id,
-            frame_id=data['frame_id'],
+            frame_id=frame_id,
             score=score,
         )
         db.session.add(frame_data)
@@ -135,7 +150,7 @@ def process_video_frame():
 
         response = {
             "score": score,
-            "frame_id": data['frame_id'],
+            "frame_id": frame_id,
             "road_outline": road_outline
         }
 

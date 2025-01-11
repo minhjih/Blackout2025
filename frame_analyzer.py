@@ -203,7 +203,7 @@ def analyze_frame(frame):
                     }
                     
                     # 점수 계산
-                    if (min(bottom_x_r, bottom_x_s) <= center_x <= max(bottom_x_r, bottom_x_s) and
+                    if (min(bottom_x_r, bottom_x_s) <= center_x <= max(bottom_x_r, bottom_x_s) or
                         min(top_x_r, top_x_s) <= center_x <= max(top_x_r, top_x_s)):
                         result["score"] = 100.0
                     else:
