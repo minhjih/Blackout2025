@@ -1,1 +1,19 @@
- 
+# 출력 영상 및 테스트 영상
+output/
+*.mp4
+
+# Python 캐시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상환경
+venv/
+env/
+
+# IDE 설정
+.vscode/
+.idea/
+
+# 시스템 파일
+.DS_Store 
