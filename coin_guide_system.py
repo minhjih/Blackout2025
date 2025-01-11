@@ -1,12 +1,12 @@
 import cv2
 import numpy as np
 import math
-from ar_utils import ARUtils  # AR 관련 유틸리티 클래스
+#from ar_utils import ARUtils  # AR 관련 유틸리티 클래스
 from lane_detection import ROI_HEIGHT_RATIO  # ROI 전역 변수 import
 
 class SafetyGuideSystem:
     def __init__(self):
-        self.ar_utils = ARUtils()
+        #self.ar_utils = ARUtils()
         self.coin_spacing = 50  # 코인 간 간격 (픽셀)
         self.coin_size = 30     # 코인 크기
         
@@ -63,7 +63,7 @@ class SafetyGuideSystem:
                 continue
                 
             slope = (y2 - y1) / (x2 - x1)
-            if abs(slope) < 0.5:  # 수평에 가까운 선 제외
+            if not (slope > 0.05) and not (slope < -0.5):  # 수평에 가까운 선 제외
                 continue
                 
             if slope < 0:
