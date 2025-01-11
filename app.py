@@ -195,5 +195,7 @@ def end_ride():
         logging.error(f"Error in end_ride: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+import os
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    socketio.run(app, host='0.0.0.0', port=5000, debug=debug_mode)
