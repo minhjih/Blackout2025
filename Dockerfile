@@ -18,16 +18,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/input /app/output
 RUN chmod 777 /app/input /app/output
 
-# 소스 코드 복사
-COPY lane_detection.py .
-COPY frame_analyzer.py .
-COPY main.py .
-COPY coin_guide_system.py .
+# AI 관련 파일들 복사
+COPY AI_folder/* /app/
+
+# 테스트 비디오 파일 복사
 COPY test_road.mp4 .
 COPY test_road_1.mp4 .
 COPY test_road_2.mp4 .
 COPY test_road_3.mp4 .
 
 # 컨테이너 실행 시 실행할 명령
-#CMD ["python", "main.py"] 
 ENTRYPOINT ["python", "frame_analyzer.py"] 
