@@ -9,6 +9,7 @@ __pycache__/
 
 # 가상환경
 venv/
+.venv/
 env/
 
 # IDE 설정
