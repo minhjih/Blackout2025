@@ -126,7 +126,6 @@ def process_video_frame():
         frame_array = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
         frame_data = analyze_frame(frame_array)
-        print(frame_data)
 
         # Placeholder for score calculation and road outline detection
         score = frame_data['score']  # Example score
