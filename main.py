@@ -1,27 +1,34 @@
 import cv2
-from lane_detection import process_frame
+from lane_detection import process_frame, set_roi_height, reset_detection_counter, DETECTION_INTERVAL
 
 def main():
+    # ROI 높이 설정 (화면 상단 80%부터 검출)
+    set_roi_height(0.8)
+    
+    # 차선 검출 카운터 초기화
+    reset_detection_counter()
+    
     # 비디오 파일 열기
-    cap = cv2.VideoCapture("test_road.mp4")
+    cap = cv2.VideoCapture("test_road_3.mp4")
     
     # 출본 비디오 크기
     orig_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     orig_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     
-    # 절반 크기 계산
+    # 1/2 크기 계산
     width = orig_width // 2
     height = orig_height // 2
     
     # 출력 비디오 설정
     out = cv2.VideoWriter('/app/output/output_video.mp4',
                          cv2.VideoWriter_fourcc(*'mp4v'),
-                         fps, (width, height))  # 절반 크기로 출력
+                         fps, (width, height))
     
     print("영상 처리를 시작합니다...")
     print(f"입력 크기: {orig_width}x{orig_height}")
     print(f"출력 크기: {width}x{height}")
+    print(f"차선 검출 간격: {DETECTION_INTERVAL} 프레임 ({DETECTION_INTERVAL/fps:.1f}초)")
     frame_count = 0
     
     while True:
@@ -29,16 +36,11 @@ def main():
         if not ret:
             break
         
-        # 프레임 크기 절반으로 축소
+        # 프레임 크기를 1/2로 축소
         frame = cv2.resize(frame, (width, height))
-            
-        # 프레임 처리
         result_frame = process_frame(frame)
-        
-        # 결과 저장
         out.write(result_frame)
         
-        # 진행 상황 출력
         frame_count += 1
         if frame_count % 30 == 0:
             print(f"처리된 프레임: {frame_count}")
