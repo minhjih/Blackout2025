@@ -1,13 +1,102 @@
 import cv2
 import numpy as np
 import json
-from lane_detection import (
-    ROI_HEIGHT_RATIO, 
-    canny, 
-    region_of_interest, 
-    merge_close_lines,
-    Coin
-)
+
+# 전역 변수 설정
+ROI_HEIGHT_RATIO = 0.6  # 기본값 0.8 (80%)
+
+def canny(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # 점선을 더 잘 감지하기 위한 전처리
+    # 1. 가우시안 블러 강화
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    
+    # 2. 이미지 개선을 위한 CLAHE 적용
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    enhanced = clahe.apply(blur)
+    
+    # 3. 모폴로지 연산으로 점선 연결
+    kernel = np.ones((5,5), np.uint8)
+    dilated = cv2.dilate(enhanced, kernel, iterations=1)
+    eroded = cv2.erode(dilated, kernel, iterations=1)
+    
+    # 4. 캐니 엣지 파라미터 조정
+    canny = cv2.Canny(eroded, 30, 150)  # 낮은 임계값으로 조정
+    
+    return canny
+
+def region_of_interest(image):
+    height = image.shape[0]
+    width = image.shape[1]
+    
+    bottom_padding = 0
+    roi_height = int(height * (1 - ROI_HEIGHT_RATIO))  # ROI_HEIGHT_RATIO에 맞춰 조정
+    
+    polygons = np.array([
+        [(50, height-bottom_padding), 
+         (width-50, height-bottom_padding), 
+         (width-100, height-roi_height), 
+         (100, height-roi_height)]
+    ])
+    mask = np.zeros_like(image)
+    cv2.fillPoly(mask, polygons, 255)
+    masked_image = cv2.bitwise_and(image, mask)
+    return masked_image
+
+def merge_close_lines(lines, min_distance=50):
+    """가까운 선들을 하나로 합치는 함수"""
+    if lines is None or len(lines) < 2:
+        return lines
+        
+    merged_lines = []
+    used = [False] * len(lines)
+    
+    for i in range(len(lines)):
+        if used[i]:
+            continue
+            
+        current_line = lines[i][0]
+        x1, y1, x2, y2 = current_line
+        x_avg = (x1 + x2) / 2
+        
+        # 현재 선과 가까운 다른 선들을 찾아서 평균 계산
+        close_lines = [current_line]
+        used[i] = True
+        
+        for j in range(i + 1, len(lines)):
+            if used[j]:
+                continue
+                
+            other_line = lines[j][0]
+            ox1, oy1, ox2, oy2 = other_line
+            other_x_avg = (ox1 + ox2) / 2
+            
+            # x 좌표의 평균값 차이로 거리 계산
+            if abs(x_avg - other_x_avg) < min_distance:
+                close_lines.append(other_line)
+                used[j] = True
+        
+        if len(close_lines) >= 1:
+            # 가까운 선들의 평균 계산
+            avg_line = np.mean(close_lines, axis=0)
+            merged_lines.append(np.array([avg_line], dtype=np.int32))
+    
+    return merged_lines if merged_lines else None
+
+class Coin:
+    def __init__(self, x, y, size=10):
+        self.x = x
+        self.y = y
+        self.size = size
+        self.speed = 5  # 코인이 아래로 내려오는 속도
+
+    def update(self, slope):
+        # 코인을 아래로 이동하면서 차선 기울기에 따라 x좌표도 조정
+        self.y += self.speed
+        self.x += self.speed * slope
+        # 크기도 점점 커지게 (원근감)
+        self.size = min(25, self.size + 0.5)
 
 def analyze_frame(frame):
     """한 프레임을 분석하여 차선 정보와 점수를 JSON 형식으로 반환하는 함수"""
