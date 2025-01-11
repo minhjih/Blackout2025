@@ -198,4 +198,9 @@ def end_ride():
 import os
 if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
-    socketio.run(app, host='0.0.0.0', port=5000, debug=debug_mode)
+
+    if debug_mode:
+        socketio.run(app, host='0.0.0.0', port=5000, debug=debug_mode)
+    else:
+        import waitress
+        waitress.serve(app, host='0.0.0.0', port=5000)
