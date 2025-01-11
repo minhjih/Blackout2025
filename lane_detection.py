@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # 전역 변수 설정
-ROI_HEIGHT_RATIO = 0.8  # 기본값 0.8 (80%)
+ROI_HEIGHT_RATIO = 0.6  # 기본값 0.8 (80%)
 
 # 전역 변수 추가
 last_detected_lines = None
@@ -100,7 +100,7 @@ def display_lines(image, lines):
     height = image.shape[0]
     width = image.shape[1]
     
-    # 오인 리스트 (static variable로 유지)
+    # 오인 리스트 (static variab                        le로 유지)
     if not hasattr(display_lines, 'coins'):
         display_lines.coins = []
     if not hasattr(display_lines, 'frame_count'):
@@ -144,6 +144,14 @@ def display_lines(image, lines):
             if len(right_lines) >= 2:
                 second_right_line = right_lines[1][0]
     
+    # 점수 변수 추가
+    if not hasattr(display_lines, 'total_score'):
+        display_lines.total_score = 0
+    if not hasattr(display_lines, 'valid_frames'):
+        display_lines.valid_frames = 0
+    if not hasattr(display_lines, 'center_frames'):
+        display_lines.center_frames = 0
+    
     # 두 차선이 모두 검출된 경우 사이 영역을 초록색으로 채우기
     if right_most_line is not None and second_right_line is not None:
         x1_r, y1_r, x2_r, y2_r = right_most_line
@@ -153,7 +161,6 @@ def display_lines(image, lines):
             slope_r = (x2_r - x1_r) / (y2_r - y1_r)
             slope_s = (x2_s - x1_s) / (y2_s - y1_s)
             
-            # 두 차선의 기울기가 모두 1보다 큰 경우에만 코인 생성
             steep_enough = abs(slope_r) > 0.5 and abs(slope_s) > 0.5
             
             bottom_y = height - 30
@@ -167,50 +174,80 @@ def display_lines(image, lines):
             # 차선 간격 계산
             lane_width = abs(bottom_x_r - bottom_x_s)
             
-            # 차선 간격이 충분히 넓고 기울기가 충분할 때만 코인 생성
-            if lane_width > 100 and steep_enough and lane_width < 500:  
+            # 중앙선 좌표 계산
+            center_x = width / 2
+            
+            # 차선 간격이 충분히 넓고 기울기가 충분할 때
+            if lane_width > 100 and steep_enough and lane_width < 500:
+                # 유효한 프레임 카운트 증가
+                display_lines.valid_frames += 1
+                
+                # 중앙선이 초록색 영역을 통과하는지 확인
+                if min(bottom_x_r, bottom_x_s) <= center_x <= max(bottom_x_r, bottom_x_s):
+                    if min(top_x_r, top_x_s) <= center_x <= max(top_x_r, top_x_s):
+                        display_lines.center_frames += 1
+                
+                # 점수 계산 (백분율)
+                if display_lines.valid_frames > 0:
+                    display_lines.total_score = int((display_lines.center_frames / display_lines.valid_frames) * 100)
+                
+                # 점수 표시
+                cv2.putText(line_image, f'Score: {display_lines.total_score}%', 
+                          (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
+                          1, (255, 255, 255), 2)
+                cv2.putText(line_image, f'Frames: {display_lines.center_frames}/{display_lines.valid_frames}', 
+                          (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 
+                          1, (255, 255, 255), 2)
+
+                # 코인 생성 및 업데이트
                 if display_lines.frame_count % 15 == 0:
                     coin_x = (top_x_r + top_x_s) / 2
                     coin_y = top_y
                     display_lines.coins.append(Coin(coin_x, coin_y))
             
-            # 코인 업데이트 및 그리기
-            new_coins = []
-            for coin in display_lines.coins:
-                # 차선의 평균 기울기로 코인 이동
-                avg_slope = (slope_r + slope_s) / 2
-                coin.update(avg_slope)
+                # 코인 업데이트 및 그리기
+                new_coins = []
+                for coin in display_lines.coins:
+                    # 차선의 평균 기울기로 코인 이동
+                    avg_slope = (slope_r + slope_s) / 2
+                    coin.update(avg_slope)
+                    
+                    # 화면 안에 있는 코인만 유지
+                    if coin.y < height:
+                        # 코인 그리기 (노란색 원)
+                        cv2.circle(line_image, 
+                                (int(coin.x), int(coin.y)), 
+                                int(coin.size), 
+                                (0, 255, 255), 
+                                -1)
+                        # 광택 효과
+                        highlight_size = max(2, int(coin.size // 3))
+                        cv2.circle(line_image, 
+                                (int(coin.x - coin.size//3), int(coin.y - coin.size//3)),
+                                highlight_size, 
+                                (255, 255, 255), 
+                                -1)
+                        new_coins.append(coin)
                 
-                # 화면 안에 있는 코인만 유지
-                if coin.y < height:
-                    # 코인 그리기 (노란색 원)
-                    cv2.circle(line_image, 
-                             (int(coin.x), int(coin.y)), 
-                             int(coin.size), 
-                             (0, 255, 255), 
-                             -1)  # -1은 원을 채우기
-                    # 광택 효과
-                    highlight_size = max(2, int(coin.size // 3))
-                    cv2.circle(line_image, 
-                             (int(coin.x - coin.size//3), int(coin.y - coin.size//3)),
-                             highlight_size, 
-                             (255, 255, 255), 
-                             -1)
-                    new_coins.append(coin)
-            
-            display_lines.coins = new_coins
-            
-            # 영역 채우기
-            polygon = np.array([
-                [int(bottom_x_r), int(bottom_y)],
-                [int(top_x_r), int(top_y)],
-                [int(top_x_s), int(top_y)],
-                [int(bottom_x_s), int(bottom_y)]
-            ], np.int32)
-            
-            overlay = np.zeros_like(image)
-            cv2.fillPoly(overlay, [polygon], (0, 255, 0))
-            cv2.addWeighted(overlay, 0.5, line_image, 1, 0, line_image)
+                # polygon 그리기
+                polygon = np.array([
+                    [int(bottom_x_r), int(bottom_y)],
+                    [int(top_x_r), int(top_y)],
+                    [int(top_x_s), int(top_y)],
+                    [int(bottom_x_s), int(bottom_y)]
+                ], np.int32)
+                
+                overlay = np.zeros_like(image)
+                cv2.fillPoly(overlay, [polygon], (0, 255, 0))
+                cv2.addWeighted(overlay, 0.5, line_image, 1, 0, line_image)
+                
+                # 중앙선 표시 (디버깅용)
+                cv2.line(line_image, 
+                        (int(center_x), height), 
+                        (int(center_x), int(height * ROI_HEIGHT_RATIO)), 
+                        (255, 0, 0), 2)
+                
+                display_lines.coins = new_coins
     
     return line_image
 
@@ -269,3 +306,12 @@ def process_frame(frame):
 def reset_detection_counter():
     global last_detection_frame
     last_detection_frame = 0 
+
+# 점수 초기화 함수 수정
+def reset_score():
+    if hasattr(display_lines, 'total_score'):
+        display_lines.total_score = 0
+    if hasattr(display_lines, 'valid_frames'):
+        display_lines.valid_frames = 0
+    if hasattr(display_lines, 'center_frames'):
+        display_lines.center_frames = 0 
