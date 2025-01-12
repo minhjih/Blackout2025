@@ -150,7 +150,6 @@ def analyze_frame(frame):
         right_lines = []
         if filtered_lines:
             merged_lines = merge_close_lines(filtered_lines)
-            print(6)
             if merged_lines is not None:
                 for line in merged_lines:
                     x1, y1, x2, y2 = line[0]
