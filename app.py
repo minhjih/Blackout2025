@@ -125,7 +125,11 @@ def process_video_frame():
         file_bytes = np.frombuffer(frame_file.read(), np.uint8)
         frame_array = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
+        # save frame_array to file
         frame_data = analyze_frame(frame_array)
+
+        if frame_data['score'] is None:
+            return jsonify({"score": -1.0, "frame_id": frame_id, "road_outline": None }), 200
 
         # Placeholder for score calculation and road outline detection
         score = frame_data['score']  # Example score
@@ -139,12 +143,12 @@ def process_video_frame():
         }
 
         # Store score in Db
-        frame_data = FrameData(
+        frame_data_record = FrameData(
             user_id=current_user.id,
             frame_id=frame_id,
             score=score,
         )
-        db.session.add(frame_data)
+        db.session.add(frame_data_record)
         db.session.commit()
 
         response = {

@@ -106,12 +106,9 @@ def analyze_frame(frame):
         "score": None,
         "frame_id": 0,
         "road_outline": None,
-        "coins": []
     }
     
     # static 변수로 coins 리스트와 frame_count 관리
-    if not hasattr(analyze_frame, 'coins'):
-        analyze_frame.coins = []
     if not hasattr(analyze_frame, 'frame_count'):
         analyze_frame.frame_count = 0
     
@@ -121,16 +118,12 @@ def analyze_frame(frame):
     width = frame.shape[1]
     
     # 차선 검출
-    print(1)
     canny_image = canny(frame)
-    print(2)
     cropped_image = region_of_interest(canny_image)
-    print(3)
     
     kernel = np.ones((3,15), np.uint8)
     processed = cv2.dilate(cropped_image, kernel, iterations=1)
     processed = cv2.erode(processed, kernel, iterations=1)
-    print(4)
     lines = cv2.HoughLinesP(
         processed,
         rho=1,
@@ -139,7 +132,6 @@ def analyze_frame(frame):
         minLineLength=35,
         maxLineGap=100
     )
-    print(5)
     # 차선 분석
     if lines is not None:
         # 기울기로 필터링된 선들
@@ -212,17 +204,6 @@ def analyze_frame(frame):
                         result["score"] = 100.0
                     else:
                         result["score"] = 0.0
-                    
-                    # 대표 코인 생성
-                    coin_x = (top_x_r + top_x_s) / 2
-                    coin_y = top_y
-                    coin_size = 10.0
-                    result["coins"] = [{
-                        "x": float(coin_x),
-                        "y": float(coin_y),
-                        "r": float(coin_size)
-                    }]
-    
     return result
 
 def process_single_frame(frame_path):
