@@ -1,4 +1,4 @@
-# Blackout_BREMEN_FrontEnd
+# Blackout_BREMEN_BackEnd
 2025 AWS Blackout Team Bremen, Backend repository
 
 ## Stacks
