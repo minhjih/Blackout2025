@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 # 전역 변수 설정
-ROI_HEIGHT_RATIO = 0.6  # 기본값 0.8 (80%)
+ROI_HEIGHT_RATIO = 0.55  # lane_detection.py와 동일하게 설정
 
 def canny(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -11,18 +11,15 @@ def canny(image):
     # 점선을 더 잘 감지하기 위한 전처리
     # 1. 가우시안 블러 강화
     blur = cv2.GaussianBlur(gray, (7, 7), 0)
-    
-    # 2. 이미지 개선을 위한 CLAHE 적용
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    enhanced = clahe.apply(blur)
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)  # 두 번 적용
     
     # 3. 모폴로지 연산으로 점선 연결
     kernel = np.ones((5,5), np.uint8)
-    dilated = cv2.dilate(enhanced, kernel, iterations=1)
+    dilated = cv2.dilate(blur, kernel, iterations=1)
     eroded = cv2.erode(dilated, kernel, iterations=1)
     
     # 4. 캐니 엣지 파라미터 조정
-    canny = cv2.Canny(eroded, 30, 150)  # 낮은 임계값으로 조정
+    canny = cv2.Canny(eroded, 30, 150)
     
     return canny
 
@@ -30,14 +27,16 @@ def region_of_interest(image):
     height = image.shape[0]
     width = image.shape[1]
     
-    bottom_padding = 0
-    roi_height = int(height * (1 - ROI_HEIGHT_RATIO))  # ROI_HEIGHT_RATIO에 맞춰 조정
+    # 하단 20% 제외
+    bottom_padding = int(height * 0)
+    # ROI_HEIGHT_RATIO에 맞춰 조정
+    roi_height = int(height * (1 - ROI_HEIGHT_RATIO))
     
     polygons = np.array([
-        [(50, height-bottom_padding), 
-         (width-50, height-bottom_padding), 
-         (width-100, height-roi_height), 
-         (100, height-roi_height)]
+        [(width//3, height-bottom_padding), 
+         (width, height-bottom_padding), 
+         (width, roi_height), 
+         (width//4, roi_height)]
     ])
     mask = np.zeros_like(image)
     cv2.fillPoly(mask, polygons, 255)
@@ -101,21 +100,11 @@ class Coin:
 def analyze_frame(frame):
     """한 프레임을 분석하여 차선 정보와 점수를 JSON 형식으로 반환하는 함수"""
     
-    # 결과를 저장할 딕셔너리
     result = {
         "score": None,
         "frame_id": 0,
-        "road_outline": None,
-        "coins": []
+        "road_outline": None
     }
-    
-    # static 변수로 coins 리스트와 frame_count 관리
-    if not hasattr(analyze_frame, 'coins'):
-        analyze_frame.coins = []
-    if not hasattr(analyze_frame, 'frame_count'):
-        analyze_frame.frame_count = 0
-    
-    analyze_frame.frame_count += 1
     
     height = frame.shape[0]
     width = frame.shape[1]
@@ -132,14 +121,13 @@ def analyze_frame(frame):
         processed,
         rho=1,
         theta=np.pi/180,
-        threshold=40,
-        minLineLength=35,
+        threshold=20,
+        minLineLength=25,
         maxLineGap=100
     )
     
     # 차선 분석
     if lines is not None:
-        # 기울기로 필터링된 선들
         filtered_lines = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
@@ -148,10 +136,9 @@ def analyze_frame(frame):
             
             if x2 != x1:
                 slope = (y2 - y1) / (x2 - x1)
-                if (slope > 0.05) or slope < -0.5:
+                if abs(slope) > 2:  # lane_detection.py와 동일한 기울기 임계값
                     filtered_lines.append(line)
         
-        # 가까운 선들 병합
         right_lines = []
         if filtered_lines:
             merged_lines = merge_close_lines(filtered_lines)
@@ -161,7 +148,6 @@ def analyze_frame(frame):
                     x_avg = (x1 + x2) / 2
                     right_lines.append((line[0], x_avg))
         
-        # 차선 정보 추출
         if len(right_lines) >= 2:
             right_lines.sort(key=lambda x: x[1], reverse=True)
             right_most_line = right_lines[0][0]
@@ -171,28 +157,22 @@ def analyze_frame(frame):
             x1_s, y1_s, x2_s, y2_s = second_right_line
             
             if y2_r != y1_r and y2_s != y1_s:
-                slope_r = (x2_r - x1_r) / (y2_r - y1_r)
-                slope_s = (x2_s - x1_s) / (y2_s - y1_s)
+                slope_r = (y2_r - y1_r) / (x2_r - x1_r)
+                slope_s = (y2_s - y1_s) / (x2_s - x1_s)
                 
-                steep_enough = abs(slope_r) > 0.5 and abs(slope_s) > 0.5
+                steep_enough = abs(slope_r) > 2 and abs(slope_s) > 2
                 
                 bottom_y = height - 30
                 top_y = height * ROI_HEIGHT_RATIO
                 
-                bottom_x_r = x1_r + slope_r * (bottom_y - y1_r)
-                bottom_x_s = x1_s + slope_s * (bottom_y - y1_s)
-                top_x_r = x1_r + slope_r * (top_y - y1_r)
-                top_x_s = x1_s + slope_s * (top_y - y1_s)
+                bottom_x_r = x1_r + (bottom_y - y1_r) / slope_r
+                bottom_x_s = x1_s + (bottom_y - y1_s) / slope_s
+                top_x_r = x1_r + (top_y - y1_r) / slope_r
+                top_x_s = x1_s + (top_y - y1_s) / slope_s
                 
-                # 차선 간격 계산
-                lane_width = abs(bottom_x_r - bottom_x_s)
-                
-                # 중앙선 좌표 계산
                 center_x = width / 2
                 
-                # 차선 간격이 충분히 넓고 기울기가 충분할 때
-                if lane_width > 100 and steep_enough and lane_width < 500:
-                    # road_outline 정보 업데이트
+                if steep_enough:
                     result["road_outline"] = {
                         "bottom_x_r": float(bottom_x_r),
                         "bottom_x_s": float(bottom_x_s),
@@ -208,16 +188,6 @@ def analyze_frame(frame):
                         result["score"] = 100.0
                     else:
                         result["score"] = 0.0
-                    
-                    # 대표 코인 생성
-                    coin_x = (top_x_r + top_x_s) / 2
-                    coin_y = top_y
-                    coin_size = 10.0
-                    result["coins"] = [{
-                        "x": float(coin_x),
-                        "y": float(coin_y),
-                        "r": float(coin_size)
-                    }]
     
     return result
 
