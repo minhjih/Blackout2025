@@ -121,13 +121,16 @@ def analyze_frame(frame):
     width = frame.shape[1]
     
     # 차선 검출
+    print(1)
     canny_image = canny(frame)
+    print(2)
     cropped_image = region_of_interest(canny_image)
+    print(3)
     
     kernel = np.ones((3,15), np.uint8)
     processed = cv2.dilate(cropped_image, kernel, iterations=1)
     processed = cv2.erode(processed, kernel, iterations=1)
-    
+    print(4)
     lines = cv2.HoughLinesP(
         processed,
         rho=1,
@@ -136,7 +139,7 @@ def analyze_frame(frame):
         minLineLength=35,
         maxLineGap=100
     )
-    
+    print(5)
     # 차선 분석
     if lines is not None:
         # 기울기로 필터링된 선들
@@ -155,6 +158,7 @@ def analyze_frame(frame):
         right_lines = []
         if filtered_lines:
             merged_lines = merge_close_lines(filtered_lines)
+            print(6)
             if merged_lines is not None:
                 for line in merged_lines:
                     x1, y1, x2, y2 = line[0]
