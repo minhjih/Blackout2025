@@ -24,3 +24,7 @@ python-dotenv==1.0.1
 
 # Session handling
 Flask-Session==0.5.0 
+
+# Production server
+gunicorn==21.2.0
+gevent==23.9.1 
