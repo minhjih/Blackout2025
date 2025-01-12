@@ -16,8 +16,4 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     Session(app)
 
-    # Register blueprints
-    from server.routes import main
-    app.register_blueprint(main)
-
     return app
