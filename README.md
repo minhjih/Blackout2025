@@ -31,6 +31,7 @@ To address these problems, we propose a mobility app incorporating gamified elem
  <img src = "./output/demo2.gif" height = 240 width = 320>
 </p>
 The first video was taken during hackerton near yeoksam station.
+
 ## Team Bremen
 > Our members are from **Bremen**, Band Club from POSTECH.<br>
 We enjoy trying various experiences and always live with a challenging mindset.
