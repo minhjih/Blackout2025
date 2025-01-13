@@ -17,8 +17,13 @@
 [BackEnd Flask Server, AI Server](https://github.com/minhjih/Blackout2025)
 ## Demos
 [App demo](https://www.youtube.com/shorts/KbvsBf6P7M0)<br>
-[Parking Page Web]( https://minhjih.github.io/micro-processor/service_area_analysis.html)
-[AI demo]  
+[Parking Page Web]( https://minhjih.github.io/micro-processor/service_area_analysis.html) 
+
+[AI demo] 
+<p align="center">
+ <img src = "./output/demo1.gif" height = 480 width = 640 >
+ <img src = "./output/demo2.gif" height = 480 width = 640>
+</p>
 
 ## Team Bremen
 > Our members are from **Bremen**, Band Club from POSTECH.<br>
