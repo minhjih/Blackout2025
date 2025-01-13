@@ -26,7 +26,7 @@ To address these problems, we propose a mobility app incorporating gamified elem
 [Parking Page Web]( https://minhjih.github.io/micro-processor/service_area_analysis.html) 
 
 <p align="center">
- <img src = "./output/demo4.gif" height = 360 width = 640 >
+ <img src = "./output/demo_4.gif" height = 360 width = 640 >
 </p>
 You can experience this site whenever.
 
