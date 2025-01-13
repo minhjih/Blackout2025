@@ -21,8 +21,8 @@
 
 [AI demo] 
 <p align="center">
- <img src = "./output/demo1.gif" height = 480 width = 640 >
- <img src = "./output/demo2.gif" height = 480 width = 640>
+ <img src = "./output/demo1.gif" height = 240 width = 320 >
+ <img src = "./output/demo2.gif" height = 240 width = 320>
 </p>
 
 ## Team Bremen
