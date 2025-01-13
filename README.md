@@ -18,6 +18,7 @@
 ## Demos
 [App demo](https://www.youtube.com/shorts/KbvsBf6P7M0)<br>
 [Parking Page Web]( https://minhjih.github.io/micro-processor/service_area_analysis.html)
+[AI demo]  
 
 ## Team Bremen
 > Our members are from **Bremen**, Band Club from POSTECH.<br>
