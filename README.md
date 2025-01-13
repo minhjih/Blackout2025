@@ -30,6 +30,7 @@ To address these problems, we propose a mobility app incorporating gamified elem
 </p>
 You can experience this site whenever.
 
+
 [AI demo] 
 <p align="center">
  <img src = "./output/demo1.gif" height = 240 width = 320 >
