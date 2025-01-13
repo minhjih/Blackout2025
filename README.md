@@ -1,16 +1,22 @@
-# Blackout_BREMEN_BackEnd
-2025 AWS Blackout Team Bremen, Backend repository
+# 2025 AWS Blackout Team BREMEN
+## GARi: Shared Mobility Platform with AR and AI
 
-## Stacks
+### About
+Personal Mobility (PM) refers to individual transportation devices such as electric scooters and bicycles, offering convenience and eco-friendliness. Shared mobility services enable multiple users to access these devices, with examples like GCOO in South Korea. However, safety concerns and parking issues remain significant challenges.
 
-<img alt="Flutter" src ="https://img.shields.io/badge/Flutter-02569B.svg?&style=for-the-badge&logo=Flutter&logoColor=white"/> 
+To address these problems, we propose a mobility app incorporating gamified elements inspired by popular games like "Pokémon GO" and "Pikmin Bloom." The app includes an AI-based safety driving score system, rewarding users with discounts for safe driving and proper parking. A ranking system further encourages competition among users. This approach aims to enhance the safety of shared mobility and improve its social perception.
+
+### Stacks
+<img alt="Flutter" src ="https://img.shields.io/badge/Flutter-02569B.svg?&style=for-the-badge&logo=Flutter&logoColor=white"/> <img alt="Flask" src ="https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white"/> <img alt="Python" src ="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54"/> <img alt="AWS" src ="https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white"/> <img alt="CUDA" src ="https://img.shields.io/badge/cuda-000000.svg?style=for-the-badge&logo=nVIDIA&logoColor=green"/> <img alt="OpenCV" src ="https://img.shields.io/badge/opencv-%23white.svg?style=for-the-badge&logo=opencv&logoColor=white"/> 
+## Repositories
+[FrontEnd Flutter Project](https://github.com/joon363/Blackout_BREMEN_App)<br>
+[BackEnd Flask Server, AI Server](https://github.com/minhjih/Blackout2025)
 
 ## Configurations
-- AWS
+- AWS EC2
 - Flutter 3.27.1
 - Dart 3.6.0
-- Android Studio Ladybug | 2024.2.1 Patch 2
-  - Runtime version: 21.0.3+-12282718-b509.11 amd64
+- Android Studio Ladybug
 
 ## Repositories
 [FrontEnd Flutter Project](https://github.com/joon363/Blackout_BREMEN_App)<br>
