@@ -24,3 +24,5 @@ python-dotenv==1.0.1
 
 # Session handling
 Flask-Session==0.5.0 
+
+waitress==2.1.0

@@ -5,8 +5,6 @@ import logging
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 
-from redis import Redis
-
 from server.extensions import db, migrate, socketio, login_manager
 from server.models.user import User, FrameData, ScoreHistory
 from server.config import config

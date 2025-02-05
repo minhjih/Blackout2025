@@ -26,32 +26,29 @@ RUN pip install --no-cache-dir pip setuptools wheel
 RUN pip install --no-cache-dir fiona
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 소스 코드 및 리소스 복사
-COPY AI_folder/ ./AI_folder/
-COPY input/ ./input/
+# 소스 코드 복사
+COPY *.py /app/
 
-# output 폴더 생성
-RUN mkdir -p output
-RUN chmod -R 777 output
+RUN mkdir -p /app/server
+RUN chmod -R 755 /app/server
+COPY server /app/server
 
 # 실행 권한 설정
 RUN chmod -R 755 /app
-# output 폴더 생성 및 권한 설정
-RUN mkdir -p /app/output
-RUN chmod -R 777 /app/output
+
 # AI 관련 파일들 복사
 COPY AI_folder/* /app/
 
-# 입력 데이터 파일들을 input 디렉토리로 복사
-COPY test_road*.mp4 /app/input/
-COPY input/강남대치_geo_fence.json /app/input/
-COPY input/regionid_560_test_data.csv /app/input/
-COPY input/base_station.png /app/input/
-COPY input/gold_station.png /app/input/
-
 # 작업 디렉토리의 권한 설정
 RUN chmod -R 755 /app
-RUN chmod -R 777 /app/output
 
-# 컨테이너 실행 시 실행할 명령
-ENTRYPOINT ["python", "AI_folder/geo_visualizer.py"] 
+# Expose the port the app runs on
+EXPOSE 5000
+
+# Set environment variables for Flask
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV DEBUG=False
+
+# Run the Flask application
+CMD ["python", "app.py"]
