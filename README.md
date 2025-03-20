@@ -1,4 +1,4 @@
-# 2025 AWS Blackout Team BREMEN
+# 🥇🏆2025 AWS Blackout Team BREMEN
 ## GARi: Shared Mobility Platform with AR and AI
 
 ### About
